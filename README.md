@@ -1,6 +1,7 @@
 # CAA-RSS: Automated Daily Check for CAA Luxembourg Updates
 
-This project automates the process of checking for new updates on the [CAA Luxembourg website](https://www.caa.lu/fr/actualites) and notifies you of any changes.
+This project automates the process of checking for new updates on the [CAA Luxembourg website](https://www.caa.lu/fr/actualites).
+The script runs daily via GitHub Actions and logs any new entries in the "Actualités" section.
 
 ---
 
@@ -16,13 +17,9 @@ This project automates the process of checking for new updates on the [CAA Luxem
 
 ### **3. Detecting New Updates**
 - On each run, the script compares the current entries with the previous ones stored in `previous_entries.json`.
-- If new entries are found, notifications are sent based on the configuration.
+- If new entries are found, they are printed in the **GitHub Actions log**.
 
-### **4. Notifications**
-- Notifications can be sent via **email** or **Slack**, configured in `config.json`.
-- The script prints new updates to the console and sends them according to the configuration.
-
-### **5. Automation**
+### **4. Automation**
 - The script runs **daily at 8 AM UTC** via GitHub Actions.
 - You can also trigger it manually from the **Actions** tab.
 
@@ -41,20 +38,13 @@ cd CAA-RSS
 pip install -r requirements.txt
 ```
 
-### **3. Configure Notifications**
-- Copy `config.json.example` to `config.json`:
-  ```bash
-  cp config.json.example config.json
-  ```
-- Edit `config.json` to enable and configure email/Slack notifications.
-
-### **4. Run Locally (Optional)**
+### **3. Run Locally (Optional)**
 ```bash
 python scraper.py
 ```
-- This will fetch the latest entries, compare them with previous runs, and send notifications if configured.
+- This will fetch the latest entries, compare them with previous runs, and print new updates.
 
-### **5. GitHub Actions Setup**
+### **4. GitHub Actions Setup**
 - The workflow (`.github/workflows/daily_check.yml`) runs automatically every day.
 - No additional setup is required—just push the code to GitHub.
 
@@ -68,7 +58,7 @@ python scraper.py
 2. **Subsequent Runs:**
    - Fetches the latest entries again.
    - Compares them with `previous_entries.json`.
-   - If new entries are found, notifications are sent.
+   - If new entries are found, they are logged in the **GitHub Actions output**.
 
 ---
 
@@ -77,24 +67,10 @@ python scraper.py
 | File | Purpose |
 |------|---------|
 | `scraper.py` | Main script to fetch and compare news entries. |
-| `config.json.example` | Example configuration file for notifications. |
-| `config.json` | Your actual configuration file (ignored by Git). |
 | `requirements.txt` | Python dependencies. |
-| `previous_entries.json` | Stores the last fetched entries (ignored by Git). |
+| `previous_entries.json` | Stores the last fetched entries (auto-generated, ignored by Git). |
 | `.github/workflows/daily_check.yml` | GitHub Actions workflow for daily execution. |
-| `.gitignore` | Specifies files to ignore (e.g., sensitive data). |
-
----
-
-## 📧 Notification Configuration
-
-### **Email Notification**
-- Set `enabled` to `true` in `config.json`.
-- Configure SMTP server, port, sender email, password, and recipient email.
-
-### **Slack Notification**
-- Set `enabled` to `true` in `config.json`.
-- Add your Slack webhook URL.
+| `.gitignore` | Specifies files to ignore (e.g., `previous_entries.json`). |
 
 ---
 
@@ -110,5 +86,5 @@ python scraper.py
 ---
 
 ## 📝 Notes
-- This project does **not** generate an RSS feed. It only checks for updates and sends notifications.
+- This project does **not** generate an RSS feed. It only checks for updates and logs them in GitHub Actions.
 - If you want an RSS feed, consider using a third-party tool like [RSS.app](https://rss.app/) on the "Actualités" page.
