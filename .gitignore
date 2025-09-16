@@ -1,0 +1,11 @@
+# Ignore sensitive files
+config.json
+previous_entries.json
+
+# Ignore Python cache
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environment
+venv/
+.env
