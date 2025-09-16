@@ -1,0 +1,19 @@
+name: Daily Check for CAA Updates
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Runs every day at 8 AM UTC
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run scraper
+        run: python scraper.py
