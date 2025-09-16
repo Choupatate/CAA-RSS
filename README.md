@@ -16,11 +16,11 @@ This project automates the process of checking for new updates on the [CAA Luxem
 
 ### **3. Detecting New Updates**
 - On each run, the script compares the current entries with the previous ones stored in `previous_entries.json`.
-- If new entries are found, they are printed in the console (or can be sent as notifications).
+- If new entries are found, notifications are sent based on the configuration.
 
 ### **4. Notifications**
-- Currently, notifications are printed in the **GitHub Actions workflow logs**.
-- You can extend the `notify_new_entries` function to send emails, Slack messages, or create GitHub issues.
+- Notifications can be sent via **email** or **Slack**, configured in `config.json`.
+- The script prints new updates to the console and sends them according to the configuration.
 
 ### **5. Automation**
 - The script runs **daily at 8 AM UTC** via GitHub Actions.
@@ -41,13 +41,20 @@ cd CAA-RSS
 pip install -r requirements.txt
 ```
 
-### **3. Run Locally (Optional)**
+### **3. Configure Notifications**
+- Copy `config.json.example` to `config.json`:
+  ```bash
+  cp config.json.example config.json
+  ```
+- Edit `config.json` to enable and configure email/Slack notifications.
+
+### **4. Run Locally (Optional)**
 ```bash
 python scraper.py
 ```
-- This will fetch the latest entries, compare them with previous runs, and print new updates.
+- This will fetch the latest entries, compare them with previous runs, and send notifications if configured.
 
-### **4. GitHub Actions Setup**
+### **5. GitHub Actions Setup**
 - The workflow (`.github/workflows/daily_check.yml`) runs automatically every day.
 - No additional setup is required—just push the code to GitHub.
 
@@ -61,7 +68,7 @@ python scraper.py
 2. **Subsequent Runs:**
    - Fetches the latest entries again.
    - Compares them with `previous_entries.json`.
-   - If new entries are found, they are logged in the workflow output.
+   - If new entries are found, notifications are sent.
 
 ---
 
@@ -70,37 +77,24 @@ python scraper.py
 | File | Purpose |
 |------|---------|
 | `scraper.py` | Main script to fetch and compare news entries. |
+| `config.json.example` | Example configuration file for notifications. |
+| `config.json` | Your actual configuration file (ignored by Git). |
 | `requirements.txt` | Python dependencies. |
-| `previous_entries.json` | Stores the last fetched entries (auto-generated). |
+| `previous_entries.json` | Stores the last fetched entries (ignored by Git). |
 | `.github/workflows/daily_check.yml` | GitHub Actions workflow for daily execution. |
+| `.gitignore` | Specifies files to ignore (e.g., sensitive data). |
 
 ---
 
-## 🚀 Extending Notifications
+## 📧 Notification Configuration
 
-To receive **email/Slack alerts**, modify the `notify_new_entries` function in `scraper.py`.
+### **Email Notification**
+- Set `enabled` to `true` in `config.json`.
+- Configure SMTP server, port, sender email, password, and recipient email.
 
-### **Example: Email Notification (Python)**
-```python
-import smtplib
-from email.mime.text import MIMEText
-
-def notify_new_entries(new_entries):
-    if new_entries:
-        message = "New updates on CAA Luxembourg:\n\n" + "\n".join(
-            f"{entry['date']}: {entry['title']} - {entry['link']}" for entry in new_entries
-        )
-        
-        msg = MIMEText(message)
-        msg['Subject'] = 'New Updates on CAA Luxembourg'
-        msg['From'] = 'your_email@example.com'
-        msg['To'] = 'recipient@example.com'
-        
-        with smtplib.SMTP('smtp.example.com', 587) as server:
-            server.starttls()
-            server.login('your_email@example.com', 'your_password')
-            server.send_message(msg)
-```
+### **Slack Notification**
+- Set `enabled` to `true` in `config.json`.
+- Add your Slack webhook URL.
 
 ---
 
@@ -116,5 +110,5 @@ def notify_new_entries(new_entries):
 ---
 
 ## 📝 Notes
-- This project does **not** generate an RSS feed. It only checks for updates and logs them.
+- This project does **not** generate an RSS feed. It only checks for updates and sends notifications.
 - If you want an RSS feed, consider using a third-party tool like [RSS.app](https://rss.app/) on the "Actualités" page.
