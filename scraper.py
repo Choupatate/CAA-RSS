@@ -8,6 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import os
+import smtplib
+from email.mime.text import MIMEText
 from datetime import datetime
 
 # URL of the "Actualités" section
@@ -15,6 +17,15 @@ URL = "https://www.caa.lu/fr/actualites"
 
 # File to store previous entries
 PREVIOUS_ENTRIES_FILE = "previous_entries.json"
+CONFIG_FILE = "config.json"
+
+
+def load_config():
+    """Load configuration from config.json."""
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE, "r") as f:
+            return json.load(f)
+    return {"notifications": {"email": {"enabled": False}, "slack": {"enabled": False}}}
 
 
 def fetch_news_entries():
@@ -63,23 +74,62 @@ def detect_new_entries(current_entries, previous_entries):
     return new_entries
 
 
-def notify_new_entries(new_entries):
-    """Print new entries (replace with email/Slack notification if needed)."""
-    if new_entries:
-        print(f"🔔 {len(new_entries)} new update(s) detected:")
-        for entry in new_entries:
-            print(f"- {entry['date']}: {entry['title']} ({entry['link']})")
-    else:
+def send_email_notification(new_entries, config):
+    """Send an email notification for new entries."""
+    email_config = config["notifications"]["email"]
+    if not email_config["enabled"]:
+        return
+    
+    message = "New updates on CAA Luxembourg:\n\n" + "\n".join(
+        f"{entry['date']}: {entry['title']} - {entry['link']}" for entry in new_entries
+    )
+    
+    msg = MIMEText(message)
+    msg['Subject'] = 'New Updates on CAA Luxembourg'
+    msg['From'] = email_config["sender_email"]
+    msg['To'] = email_config["recipient_email"]
+    
+    with smtplib.SMTP(email_config["smtp_server"], email_config["smtp_port"]) as server:
+        server.starttls()
+        server.login(email_config["sender_email"], email_config["sender_password"])
+        server.send_message(msg)
+
+
+def send_slack_notification(new_entries, config):
+    """Send a Slack notification for new entries."""
+    slack_config = config["notifications"]["slack"]
+    if not slack_config["enabled"]:
+        return
+    
+    message = {"text": "New updates on CAA Luxembourg:\n" + "\n".join(
+        f"{entry['date']}: {entry['title']} - {entry['link']}" for entry in new_entries
+    )}
+    
+    requests.post(slack_config["webhook_url"], json=message)
+
+
+def notify_new_entries(new_entries, config):
+    """Notify new entries via email or Slack."""
+    if not new_entries:
         print("No new updates.")
+        return
+    
+    print(f"🔔 {len(new_entries)} new update(s) detected:")
+    for entry in new_entries:
+        print(f"- {entry['date']}: {entry['title']} ({entry['link']})")
+    
+    send_email_notification(new_entries, config)
+    send_slack_notification(new_entries, config)
 
 
 def main():
     print(f"🔍 Checking for updates at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    config = load_config()
     current_entries = fetch_news_entries()
     previous_entries = load_previous_entries()
     
     new_entries = detect_new_entries(current_entries, previous_entries)
-    notify_new_entries(new_entries)
+    notify_new_entries(new_entries, config)
     
     save_entries(current_entries)
 
