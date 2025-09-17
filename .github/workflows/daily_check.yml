@@ -18,19 +18,19 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Download previous entries (if exists)
-        uses: actions/download-artifact@v4
+      - name: Restore previous entries cache
+        uses: actions/cache@v3
+        id: cache
         with:
-          name: previous_entries
-          path: .
-        continue-on-error: true  # Ignore if no artifact exists yet
+          path: previous_entries.json
+          key: previous_entries-${{ hashFiles('scraper.py') }}
 
       - name: Run scraper
         run: python scraper.py
 
-      - name: Upload previous entries
-        uses: actions/upload-artifact@v4
+      - name: Save previous entries cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
         with:
-          name: previous_entries
           path: previous_entries.json
-          retention-days: 7  # Keep for 7 days
+          key: previous_entries-${{ hashFiles('scraper.py') }}
