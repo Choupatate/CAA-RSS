@@ -10,10 +10,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Download previous entries (if exists)
+        uses: actions/download-artifact@v3
+        with:
+          name: previous_entries
+          path: .
+        continue-on-error: true  # Ignore if no artifact exists yet
+
       - name: Run scraper
         run: python scraper.py
+
+      - name: Upload previous entries
+        uses: actions/upload-artifact@v3
+        with:
+          name: previous_entries
+          path: previous_entries.json
+          retention-days: 7  # Keep for 7 days
